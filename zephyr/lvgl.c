@@ -6,6 +6,7 @@
 
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
+#include <zephyr/pm/device_runtime.h>
 #include <lvgl.h>
 #include "lvgl_display.h"
 #ifdef CONFIG_LV_Z_USE_FILESYSTEM
@@ -333,6 +334,12 @@ static int lvgl_init(const struct device *dev)
 
 	int err = 0;
 
+	err = pm_device_runtime_get(display_dev);
+	if (err < 0) {
+		LOG_ERR("Failed to get PM device");
+		return -ENODEV;
+	}
+
 	if (!device_is_ready(display_dev)) {
 		LOG_ERR("Display device not ready.");
 		return -ENODEV;
@@ -372,6 +379,8 @@ static int lvgl_init(const struct device *dev)
 #ifdef CONFIG_LV_Z_POINTER_KSCAN
 	lvgl_pointer_kscan_init();
 #endif /* CONFIG_LV_Z_POINTER_KSCAN */
+
+	pm_device_runtime_put(display_dev);
 
 	return 0;
 }
